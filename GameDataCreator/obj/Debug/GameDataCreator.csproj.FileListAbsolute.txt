@@ -1,0 +1,17 @@
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\GameDataCreator.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\GameDataCreator.pdb
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\UnityEngine.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\UnityEngine.xml
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\obj\Debug\GameDataCreator.csprojAssemblyReference.cache
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\obj\Debug\GameDataCreator.csproj.CoreCompileInputs.cache
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\obj\Debug\GameDataCreator.csproj.CopyComplete
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\obj\Debug\GameDataCreator.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\obj\Debug\GameDataCreator.pdb
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\UnityEditor.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\Unity.CompilationPipeline.Common.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\Unity.Cecil.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\Unity.SerializationLogic.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\ExCSS.Unity.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\Unity.Legacy.NRefactory.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\Unity.CecilTools.dll
+C:\Users\riZ\Documents\Dev\GitHub\GameDataCreator\GameDataCreator\bin\Debug\UnityEditor.xml
