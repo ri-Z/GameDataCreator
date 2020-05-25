@@ -1,0 +1,7 @@
+﻿int;string;float;float;bool
+id;name;hp;damage;god
+1;Jorge;100;60;TRUE
+2;Carlos;90;70;FALSE
+3;Dias;80;80;FALSE
+4;Eva;70;90;FALSE
+5;Sam;60;100;FALSE
