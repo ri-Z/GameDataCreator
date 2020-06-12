@@ -23,35 +23,16 @@ internal class EndNameEdit : EndNameEditAction
 
 public class dllcodetocompile : EditorWindow
 {
-    //public List<string> Schemas = new List<string>();
     string SchemaName = "";
-    //int nameDefaultCounter = 0;
-
-    //int VariableTypeSelected = 0;
-    //string[] VariableTypeOptions = new string[] { "Bool", "Int", "Float" };
-    //string Variable = "";
-
-
-    List<Data1Test> datas = new List<Data1Test>();
-    Data1Test data1Test = new Data1Test();
 
     string[] rows;
     string nameOfFile;
     public string[,] arrayTypeName;
     string content;
-    bool show;
-    private static bool justRecompiled;
     string path;
-    private bool waitingForRecompiling;
-    static dllcodetocompile()
-    {
-        justRecompiled = true;
-    }
 
 
-    /// <summary>
-    /// Scriptable Factory
-    /// </summary>
+    // Scriptable Factory
     private int selectedIndex;
     private static string[] names;
 
@@ -68,13 +49,10 @@ public class dllcodetocompile : EditorWindow
     }
     private int toolbarInt = 0;
     private string[] toolbarNames = { "Create", "Populate"};
-    //ScriptableObject[] objects;
     public List<data1> objects = new List<data1>();
 
 
-    /// <summary>
-    /// Returns the assembly that contains the script code for this project (currently hard coded)
-    /// </summary>
+    // Returns the assembly that contains the script code for this project (currently hard coded)
     private static Assembly GetAssembly()
     {
         return Assembly.Load(new AssemblyName("Assembly-CSharp"));
@@ -108,7 +86,7 @@ public class dllcodetocompile : EditorWindow
 
     void OnGUI()
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////
+        // one tab for the creation of the of the scriptable objects and the other to populate them
         toolbarInt = GUILayout.Toolbar(toolbarInt, toolbarNames, new GUILayoutOption[0]);
         switch (toolbarInt)
         {
@@ -126,29 +104,24 @@ public class dllcodetocompile : EditorWindow
         SchemaName = EditorGUILayout.TextField("Schema Name: ", SchemaName);
         EditorGUILayout.Space(); // Divisor
 
+        // Loads the spreadsheet file and splits the 2 first rows of the document in order to store them in an array 
         if (GUILayout.Button("Load CSV file"))
         {
             nameOfFile = "data1";
             TextAsset data = Resources.Load<TextAsset>(nameOfFile);
             rows = data.text.Split(new char[] { '\n' });
-            //Debug.Log(rows.Length);
-            //Debug.Log(rows[0]);
 
             string[] dataType = rows[0].Split(new char[] { ';' });
             string[] dataName = rows[1].Split(new char[] { ';' });
             string[] dataTest = rows[2].Split(new char[] { ';' });
-            //Debug.Log("dataTest[0]: " + dataTest[2]);
             arrayTypeName = new string[dataType.Length, 2];
             for (int i = 0; i < dataType.Length; i++)
             {
                 arrayTypeName[i, 0] = dataType[i];
                 Debug.Log("dataType[" + i + "]: " + dataType[i]);
-                //Debug.Log("arrayTypeName[" + i + ", " + 0 + "]: " + arrayTypeName[i, 0]);
                 for (int j = 1; j < 2; j++)
                 {
-                    //Debug.Log("dataName[" + i + "]: " + dataName[i]);
                     arrayTypeName[i, j] = dataName[i];
-                    //Debug.Log("arrayTypeName[" + i + ", " + j + "]: " + arrayTypeName[i, j]);
                 }
             }
             for (int i = 0; i < dataType.Length; i++)
@@ -159,6 +132,7 @@ public class dllcodetocompile : EditorWindow
                 }
             }
 
+            // Creation of the script that will be the base the scriptable objects, with the data names and types
             path = Application.dataPath + "/" + nameOfFile + ".cs";
             if (!File.Exists(path))
             {
@@ -182,9 +156,6 @@ public class dllcodetocompile : EditorWindow
                 File.AppendAllText(path, content);
             }
             File.AppendAllText(path, "\n}");
-
-            //AssetDatabase.SaveAssets();
-            //waitingForRecompiling = true;
             AssetDatabase.Refresh();
         }
 
@@ -201,6 +172,7 @@ public class dllcodetocompile : EditorWindow
                 selectedIndex = i;
             }
         }
+        // Creates all the scriptable objects as many rows with data the spreadsheet has
         if (GUILayout.Button("Create"))
         {
             for (int i = 2; i < rows.Length - 1; i++)
@@ -219,6 +191,7 @@ public class dllcodetocompile : EditorWindow
         }
     }
 
+    // Usage the List previously created filling all the variables with the values from the csv file.
     private void Populate()
     {
         string[] data;
@@ -236,8 +209,6 @@ public class dllcodetocompile : EditorWindow
                     for (int j = 2; j < rows.Length - 1; j++)
                     {
                         data = rows[j].Split(new char[] { ';' });
-                        //for (int k = 0; k < 1; k++)
-                        //{
                             int.TryParse(data[0], out id);
                             float.TryParse(data[2], out hp);
                             float.TryParse(data[3], out damage);
@@ -247,13 +218,10 @@ public class dllcodetocompile : EditorWindow
                             objects[i].hp = hp;
                             objects[i].damage = damage;
                             objects[i].god = god;
-                        //}
-                        //int.TryParse(data[0], out id);
-                        //objects[i].id = id;
-                        //objects[i].id = 1;
-                        //objects[i].hp = 2;
-                        //objects[i].damage = 3;
 
+                        //Binary Formatter to create a file and serialize it as JSON, to keep the data persistently
+                        //then check if the file exists and if so deserialize it, saving the changes to the scriptable objects 
+                        //with EditorUtility.SetDirty()
                         BinaryFormatter binaryFormatter = new BinaryFormatter();
                         FileStream file = File.Create(Application.persistentDataPath + string.Format("/{0}.pso", i));
                         var json = JsonUtility.ToJson(objects[i]);
