@@ -1,0 +1,4 @@
+ScriptableObjectss
+System.String,System.String,UnityEngine.Sprite,System.Int32,System.Int32,System.Int32
+name,description,artwork,manaCost,attack,hp
+,,null,0,0,0

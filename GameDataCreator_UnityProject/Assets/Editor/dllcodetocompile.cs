@@ -2,11 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
+using UnityEditor.ProjectWindowCallback;
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+
+// Unity calls this function when the user accepts an edited name
+internal class EndNameEdit : EndNameEditAction
+{
+    #region implemented abstract members of EndNameEditAction
+    public override void Action(int instanceId, string pathName, string resourceFile)
+    {
+        AssetDatabase.CreateAsset(EditorUtility.InstanceIDToObject(instanceId), AssetDatabase.GenerateUniqueAssetPath(pathName));
+    }
+
+    #endregion
+}
 
 public class dllcodetocompile : EditorWindow
 {
     //public List<string> Schemas = new List<string>();
-    //string SchemaName = "";
+    string SchemaName = "";
     //int nameDefaultCounter = 0;
 
     //int VariableTypeSelected = 0;
@@ -17,136 +35,250 @@ public class dllcodetocompile : EditorWindow
     List<Data1Test> datas = new List<Data1Test>();
     Data1Test data1Test = new Data1Test();
 
+    string[] rows;
+    string nameOfFile;
+    public string[,] arrayTypeName;
+    string content;
+    bool show;
+    private static bool justRecompiled;
+    string path;
+    private bool waitingForRecompiling;
+    static dllcodetocompile()
+    {
+        justRecompiled = true;
+    }
+
+
+    /// <summary>
+    /// Scriptable Factory
+    /// </summary>
+    private int selectedIndex;
+    private static string[] names;
+
+    private static Type[] types;
+
+    private static Type[] Types
+    {
+        get { return types; }
+        set
+        {
+            types = value;
+            names = types.Select(t => t.FullName).ToArray();
+        }
+    }
+    private int toolbarInt = 0;
+    private string[] toolbarNames = { "Create", "Populate"};
+    //ScriptableObject[] objects;
+    public List<data1> objects = new List<data1>();
+
+
+    /// <summary>
+    /// Returns the assembly that contains the script code for this project (currently hard coded)
+    /// </summary>
+    private static Assembly GetAssembly()
+    {
+        return Assembly.Load(new AssemblyName("Assembly-CSharp"));
+    }
+    void GetAllScriptableObjects()
+    {
+        var assembly = GetAssembly();
+
+        // Get all classes derived from ScriptableObject
+        var allScriptableObjects = (from t in assembly.GetTypes()
+                                    where t.IsSubclassOf(typeof(ScriptableObject))
+                                    select t).ToArray();
+
+        Types = allScriptableObjects;
+    }
+
     [MenuItem("Window/GameDataCreator_ToCompile")]
     public static void ShowWindow()
     {
-        GetWindow<dllcodetocompile>("GameDataCreator_ToCompile");
+        var assembly = GetAssembly();
+
+        // Get all classes derived from ScriptableObject
+        var allScriptableObjects = (from t in assembly.GetTypes()
+                                    where t.IsSubclassOf(typeof(ScriptableObject))
+                                    select t).ToArray();
+
+        Types = allScriptableObjects;
+
+        GetWindow<dllcodetocompile>(true, "GameDataCreator_ToCompile", true);
     }
 
     void OnGUI()
     {
-        //// Window Code
-        //EditorGUILayout.BeginHorizontal();
-        //SchemaName = EditorGUILayout.TextField("Schema Name: ", SchemaName);
-        //if (GUILayout.Button("Create New Schema"))
-        //{
-        //    if (SchemaName != "")
-        //    {
-        //        Debug.Log("New Schema Created! - " + SchemaName);
-        //        for (int i = 0; i < Schemas.Count; i++)
-        //        {
-        //            if (SchemaName == Schemas[i]) // NOT WORKING
-        //            {
-        //                Debug.Log("Name already in use!");
-        //            }
-        //            else
-        //            {
-        //                Schemas.Add(SchemaName);
-        //            }
-        //        }
-        //    }
-        //    else if (SchemaName == "")
-        //    {
-        //        SchemaName = "DefaultName_" + nameDefaultCounter;
-        //        Debug.Log("New Default Name Schema Created! - " + SchemaName);
-        //        nameDefaultCounter++;
-        //    }
-        //}
-        //EditorGUILayout.EndHorizontal();
-
-        //EditorGUILayout.Space(); // Divisor
-
-
-        //EditorGUILayout.BeginHorizontal();
-        ////EditorGUILayout.LabelField("Schema List: ");
-        //GUILayout.Label("Schema List: ", EditorStyles.boldLabel);
-        //EditorGUILayout.EndHorizontal();
-        //EditorGUILayout.BeginHorizontal();
-        //ShowSchema();
-        //EditorGUILayout.EndHorizontal();
-
-
-        //EditorGUILayout.Space(); // Divisor
-
         ////////////////////////////////////////////////////////////////////////////////////////////////
-
-        if (GUILayout.Button("Load CSV file"))
+        toolbarInt = GUILayout.Toolbar(toolbarInt, toolbarNames, new GUILayoutOption[0]);
+        switch (toolbarInt)
         {
-            TextAsset data = Resources.Load<TextAsset>("data1");
-            string[] rows = data.text.Split(new char[] { '\n' });
-            //Debug.Log(rows.Length);
-            //Debug.Log(rows[0]);
-
-
-
-            // i = 2, because 1st and 2nd rows are variables types and names
-            for (int i = 0; i < rows.Length - 1; i++)
-            {
-                string[] colum = rows[i].Split(new char[] { ';' });
-                //Debug.Log("colum[0]: " + colum[0]);
-                for (int j = 0; j < colum.Length; j++)
-                {
-                    //Debug.Log("rows[0]: " + rows[0] + " colum[0]: " + colum[0]);
-                    var columItem = colum[i];
-
-                    Debug.Log("columItem: " + columItem);
-                    //if (rows[0] == "int" && colum[j] == "int")
-                    //{
-                    //    //int.Parse(colum[2]);// (colum[i], out );
-                    //    int.TryParse(colum[2], out data1Test.id);
-                    //    Debug.Log("colum[2]: " + colum[2]);
-                    //}
-                }
-
-                //if (colum[0] != "")
-                //{
-                //    Data1Test data1Test = new Data1Test();
-                //    int.TryParse(colum[0], out data1Test.id);
-                //    data1Test.name = colum[1];
-                //    float.TryParse(colum[2], out data1Test.hp);
-                //    float.TryParse(colum[3], out data1Test.damage);
-                //    bool.TryParse(colum[4], out data1Test.god);
-                //    datas.Add(data1Test);
-                //}
-
-            }
-
-            //foreach (var item in datas)
-            //{
-            //    Debug.Log(item.name);
-            //}
+            case 0:
+                Create();
+                break;
+            case 1:
+                Populate();
+                break;
         }
     }
 
+    private void Create()
+    {
+        SchemaName = EditorGUILayout.TextField("Schema Name: ", SchemaName);
+        EditorGUILayout.Space(); // Divisor
 
-    //void ShowSchema()
-    //{
-    //    EditorGUI.BeginChangeCheck();
-    //    VariableTypeSelected = EditorGUILayout.Popup("Variable Type:", VariableTypeSelected, VariableTypeOptions);
-    //    if (EditorGUI.EndChangeCheck())
-    //    {
-    //        Debug.Log(VariableTypeSelected);
-    //        Debug.Log(VariableTypeOptions[VariableTypeSelected]);
-    //    }
+        if (GUILayout.Button("Load CSV file"))
+        {
+            nameOfFile = "data1";
+            TextAsset data = Resources.Load<TextAsset>(nameOfFile);
+            rows = data.text.Split(new char[] { '\n' });
+            //Debug.Log(rows.Length);
+            //Debug.Log(rows[0]);
 
-    //    Variable = EditorGUILayout.TextField("Variable Name: ", Variable);
-    //    if (GUILayout.Button("Add Variable"))
-    //    {
+            string[] dataType = rows[0].Split(new char[] { ';' });
+            string[] dataName = rows[1].Split(new char[] { ';' });
+            string[] dataTest = rows[2].Split(new char[] { ';' });
+            //Debug.Log("dataTest[0]: " + dataTest[2]);
+            arrayTypeName = new string[dataType.Length, 2];
+            for (int i = 0; i < dataType.Length; i++)
+            {
+                arrayTypeName[i, 0] = dataType[i];
+                Debug.Log("dataType[" + i + "]: " + dataType[i]);
+                //Debug.Log("arrayTypeName[" + i + ", " + 0 + "]: " + arrayTypeName[i, 0]);
+                for (int j = 1; j < 2; j++)
+                {
+                    //Debug.Log("dataName[" + i + "]: " + dataName[i]);
+                    arrayTypeName[i, j] = dataName[i];
+                    //Debug.Log("arrayTypeName[" + i + ", " + j + "]: " + arrayTypeName[i, j]);
+                }
+            }
+            for (int i = 0; i < dataType.Length; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    Debug.Log("arrayTypeName[" + i + ", " + j + "]: " + arrayTypeName[i, j]);
+                }
+            }
 
-    //    }
+            path = Application.dataPath + "/" + nameOfFile + ".cs";
+            if (!File.Exists(path))
+            {
+                File.WriteAllText(path, "using UnityEngine;\n\n" +
+                   "[CreateAssetMenu(fileName = \"New " + SchemaName + "\", menuName = \"" + SchemaName + "\")]\n" + // fileName = name variable
+                                                                                                                     // menuName = ask user input
+                    "public class " + nameOfFile + " : ScriptableObject\n" +
+                    "{\n");
+                Debug.Log("File created!");
+            }
 
+            for (int i = 0; i < dataType.Length; i++)
+            {
+                string temp;
+                for (int j = 0; j < 1; j++)
+                {
+                    temp = "\tpublic " + arrayTypeName[i, j] + " " + arrayTypeName[i, j + 1] + ";\n";
+                    Debug.Log(temp);
+                    content = temp;
+                }
+                File.AppendAllText(path, content);
+            }
+            File.AppendAllText(path, "\n}");
 
-    //    switch (VariableTypeSelected)
-    //    {
-    //        case 0:
-    //            break;
-    //        case 1:
-    //            break;
-    //        case 2:
-    //            break;
-    //        default:
-    //            Debug.LogError("Unrecognized Option");
-    //            break;
-    //    }
-    //}
+            //AssetDatabase.SaveAssets();
+            //waitingForRecompiling = true;
+            AssetDatabase.Refresh();
+        }
+
+        EditorGUILayout.Space(); // Divisor
+
+        // Refreshes all the ScriptableObjects search to find the new one just created
+        GetAllScriptableObjects();
+
+        Debug.Log("names.Length: " + names.Length);
+        for (int i = 0; i < names.Length; i++)
+        {
+            if (names[i] == nameOfFile)
+            {
+                selectedIndex = i;
+            }
+        }
+        if (GUILayout.Button("Create"))
+        {
+            for (int i = 2; i < rows.Length - 1; i++)
+            {
+                var asset = ScriptableObject.CreateInstance(types[selectedIndex]);
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                    asset.GetInstanceID(),
+                    ScriptableObject.CreateInstance<EndNameEdit>(),
+                    //string.Format("{0}.asset", names[selectedIndex]), // File name
+                    string.Format("{0}.asset", SchemaName), // SchemaName name
+                    AssetPreview.GetMiniThumbnail(asset),
+                    null);
+                objects.Add((data1)asset);
+            }
+            //Debug.Log(objects[1]);
+        }
+    }
+
+    private void Populate()
+    {
+        string[] data;
+        int id;
+        float hp;
+        float damage;
+        bool god;
+        if (GUILayout.Button("Populate"))
+        {
+            Debug.Log(objects.Count);
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (objects[i] != null)
+                {
+                    for (int j = 2; j < rows.Length - 1; j++)
+                    {
+                        data = rows[j].Split(new char[] { ';' });
+                        //for (int k = 0; k < 1; k++)
+                        //{
+                            int.TryParse(data[0], out id);
+                            float.TryParse(data[2], out hp);
+                            float.TryParse(data[3], out damage);
+                            bool.TryParse(data[4], out god);
+                            objects[i].id = id;
+                            objects[i].name = data[1];
+                            objects[i].hp = hp;
+                            objects[i].damage = damage;
+                            objects[i].god = god;
+                        //}
+                        //int.TryParse(data[0], out id);
+                        //objects[i].id = id;
+                        //objects[i].id = 1;
+                        //objects[i].hp = 2;
+                        //objects[i].damage = 3;
+
+                        BinaryFormatter binaryFormatter = new BinaryFormatter();
+                        FileStream file = File.Create(Application.persistentDataPath + string.Format("/{0}.pso", i));
+                        var json = JsonUtility.ToJson(objects[i]);
+                        binaryFormatter.Serialize(file, json);
+                        file.Close();
+                        
+                        if (File.Exists(Application.persistentDataPath + string.Format("/{0}.pso", i)))
+                        {
+                            file = File.Open(Application.persistentDataPath + string.Format("/{0}.pso", i), FileMode.Open);
+                            JsonUtility.FromJsonOverwrite((string)binaryFormatter.Deserialize(file), objects[i]);
+                            file.Close();
+                            // writing changes of the testScriptable into Undo
+                            Undo.RecordObject(objects[i], "Changed Data");
+                            // mark the ScriptableObject object as "dirty" and save it
+                            EditorUtility.SetDirty(objects[i]);
+                        }
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+    }
 }

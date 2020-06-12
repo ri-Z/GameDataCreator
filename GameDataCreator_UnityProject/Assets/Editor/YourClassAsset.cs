@@ -6,6 +6,6 @@ public class YourClassAsset
     [MenuItem("Assets/Create/ScriptableObjects")]
     public static void CreateAsset()
     {
-        ScriptableObjectUtility.CreateAsset<ScriptableObjects>();
+        ScriptableObjectUtility.CreateAsset<ScriptableObjectss>();
     }
 }
